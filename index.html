@@ -3,26 +3,35 @@
 	<head>
 		<meta charset="utf-8">
 		
-		<title>RobinsonProgramming.com</title>
+		<title>15-Puzzle Genetic</title>
 		<link rel="stylesheet" href="./website.css">
-		<script type="text/javascript" src="fifteenPuzzle.js"></script>
+		<script type="text/javascript" src="App.js"></script>
 	</head>
 
 	<body>
-		<div id="wrapper">
-			<div id="header">
-				<div id="guide"><h1><a href="http://www.robinsonprogramming.com">RobinsonProgramming.com</a></h1></div>
-			</div><!--id="header"-->
 
-			<div id="content">
+			<div>
 <!--#this is where you place the contents of your web page-->
-<table id="table">
+<table>
+	<tr>
+		<td><table class="table"></table></td>
+		<td><table class="table"></table></td>
+		<td><table class="table"></table></td>
+		<td><table class="table"></table></td>
+	</tr>
+	<tr>
+		<td><table class="table"></table></td>
+		<td><table class="table"></table></td>
+		<td><table class="table"></table></td>
+		<td><table class="table"></table></td>
+	</tr>
 </table>
+
 <br>
 <br>
 <label>Rows <input type="text" name="rows" id="rows" value="4" size="2"></label>
 <label>Columns <input type="text" name="columns" id="columns" value="4" size="2"></label>
-<input type="button" id="newGame" value="Start New Game">
+<input type="button" id="newGame" value="Simulate">
 <br>
 <br>
 Number Of Moves: <span id="moves">0</span>
@@ -32,7 +41,6 @@ Number Of Moves: <span id="moves">0</span>
 			<div id="footer">
 				<p>Copyright &copy; 2014 Robinson Programming Solutions LLC</p>
 ]			</div> <!--footer-->
-		</div><!--wrapper-->
 
 	</body>
 </html>
