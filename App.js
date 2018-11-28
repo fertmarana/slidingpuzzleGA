@@ -7,7 +7,7 @@ function DNA(){ //class
 	upper_bound = 4;
 	lower_bound = 0;
 	this.genes = [];
-	this.geneMax = 120;
+	this.geneMax = 300;
 	var random_number;
 
 	for(var i = 0; i < this.geneMax; i++){
@@ -32,7 +32,7 @@ function Individual(HTMLelem){ //Representes a individual of the population
     }
 
 	this.reset = function(){ //reset the population to a new generation
-		this.board = puzzleInstance.resetBoard();
+		this.board = this.puzzleInstance.resetBoard();
 		this.running = true;
 		this.geneCount = 0;
 	};
@@ -41,9 +41,9 @@ function Individual(HTMLelem){ //Representes a individual of the population
 		var count = 1;
 		var distance = 0;
 		var diference;
-		for (var i = 0; i < rows; i++){
-			for (var j = 0; j < columns; j++){
-		    	diference = puzzleInstance.board[i * boardSize + j] - count;
+		for (var i = 0; i < boardSize; i++){
+			for (var j = 0; j < boardSize; j++){
+		    	diference = this.puzzleInstance.board[i * boardSize + j] - count;
 
 		    	if (diference < 0) diference *= (-1);
 
@@ -53,22 +53,34 @@ function Individual(HTMLelem){ //Representes a individual of the population
 		}
 
 		this.mdist = distance;
-		return this.mdist;
+		return distance;
 	}
 
 	this.move = function(move){ //dies in the border
 		if (!this.running) return;
 
-		if (!this.puzzleInstance.moveTile(move)){
+		this.puzzleInstance.moveTile(move);
+
+		/*if (!this.puzzleInstance.moveTile(move)){
 			this.running = false;
+			simulationCounter--;
+
+			this.puzzleInstance.class = "fail";
+			this.puzzleInstance.drawBoard();
+		}*/
+
+		if (this.geneCount >= this.dna.genes.length){
+			this.running = false;
+			simulationCounter--;
 
 			this.puzzleInstance.class = "fail";
 			this.puzzleInstance.drawBoard();
 		}
 
-  		if (this.mdistance == 0) {
+  		if (this.mdistance() == 0) {
 		    this.running = false;
 		    this.completed = true;
+		    simulationCounter--;
 
 		    this.puzzleInstance.class = "complete";
 		    this.puzzleInstance.drawBoard();
@@ -91,10 +103,17 @@ function Individual(HTMLelem){ //Representes a individual of the population
 
 	//generate genes crossover
 	this.crossover = function(){
-		for(var i = 0; i<120; i++){ //for every gene
+		for(var i = 0; i < this.dna.genes.length; i++){ //for every gene
 			this.dna.genes[i] += best_one.dna.genes[i]; //add with the bestOne's genes
 			this.dna.genes[i] = this.dna.genes[i] % 4;
 		}
+	};
+
+	this.mutation = function(){
+		var position = Math.floor(Math.random()*(Math.floor(this.dna.genes.length / 3) + 1));
+		var offset = Math.floor(Math.random()*3 + 1);
+
+		this.puzzleInstance.board[position] = (this.puzzleInstance.board[position] + offset) % 4;
 	};
 }
 
@@ -189,6 +208,7 @@ var PuzzleInstance = function(HTMLelem){
 /******************************/
 
 var HTMLboards;
+var bestFitObj;
 
 var initialBoard;
 var initialEmptyX, initialEmptyY;
@@ -198,8 +218,10 @@ var population;
 
 var simulationIntervalID;
 var simulationCounter;
-var simulationMax = 120;
-var simulationTime = 500;
+var simulationTime = 10;
+
+var currentGeneration;
+var maxGeneration = 5;
 
 function makeBoardSolvable(){
 	var count = 0;
@@ -271,20 +293,24 @@ function start(){
 		population[i].puzzleInstance.drawBoard();
 	}
 
+	console.log("pop size: " + population.length);
+	console.log("mdist: " + population[0].mdistance());
+
+	bestFitObj = document.getElementById("bestfit");
+
 	var button = document.getElementById("newGame");
   	button.addEventListener("click", startSimulation, false);
 }
 
 function startSimulation(){
-	simulationCounter = 0;
+	simulationCounter = population.length;
 	simulationIntervalID = setInterval(simulate, simulationTime);
 }
 
 function simulate(){
-	for (var i = 0; i < HTMLboards.length; i++) population[i].update();
-	simulationCounter++;
+	for (var i = 0; i < population.length; i++) population[i].update();
 
-	if (simulationCounter > simulationMax) endSimulation();
+	if (simulationCounter <= 0) endSimulation();
 }
 
 function endSimulation(){
@@ -294,22 +320,33 @@ function endSimulation(){
 	var localFit;
 	min = 100000;
 	best_one = population[0];
+	population[0].mdistance();
 	//averageFitness = 0;
 
 		//find the best individual
 		for(i=1; i<population.length; i++){
+			population[i].mdistance();
+
 			if(!best_one.haveFitnessHigherThat(population[i])){
 				best_one = population[i];
 			}
 		}
 		//averageFitness /= pop_size;
 		//crossover with the best individual
-		for(i=0; i<population.length; i++) {
-            if (population[i] !== best_one) population[i].crossover();
+		for(i = 0; i < population.length; i++) {
+			console.log("crossover to ind " + i);
+            if (population[i] !== best_one){
+            	population[i].resetDNA();
+				population[i].crossover();
+            } 
+            population[i].mutation();
+            population[i].mutation();
+            population[i].mutation();
             population[i].reset();
         }
 
-
+        best_one.puzzleInstance.class = "best";
+        bestFitObj.innerHTML = "Best of Past Gen: MDist = " + best_one.mdist + ", Moves = " + best_one.puzzleInstance.moves;
 
 	startSimulation();
 }
