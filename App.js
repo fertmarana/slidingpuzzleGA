@@ -77,6 +77,7 @@ function Individual(HTMLelem){ //Representes a individual of the population
 
 	this.update = function(){
 		if (this.running && this.geneCount < this.dna.geneMax){
+			console.log("make movement [" + this.geneCount + "] = " + this.dna.genes[this.geneCount]);
 			this.move(this.dna.genes[this.geneCount++]);
 		}
 	};
@@ -117,7 +118,7 @@ var PuzzleInstance = function(HTMLelem){
 	this.class = "";
 
 	this.resetBoard = function(){
-		this.board = initialBoard;
+		this.board = initialBoard.slice();
 		this.moves = 0;
 		this.emptyX = initialEmptyX;
 		this.emptyY = initialEmptyY;
@@ -273,7 +274,7 @@ function start(){
 
 function simulate(){
 	for (var n = 0; n < 120; n++)
-		for (var i = 0; i < HTMLboards.length; i++) window.setTimeout(population[i].update(), 30000000);
+		for (var i = 0; i < HTMLboards.length; i++) population[i].update();
 }
 
 window.addEventListener("load", start, false);
