@@ -198,6 +198,11 @@ var boardSize;
 
 var population;
 
+var simulationIntervalID;
+var simulationCounter;
+var simulationMax = 120;
+var simulationTime = 500;
+
 function makeBoardSolvable(){
 	var count = 0;
 	var Ix, Iy;
@@ -269,12 +274,27 @@ function start(){
 	}
 
 	var button = document.getElementById("newGame");
-  	button.addEventListener("click", simulate, false);
+  	button.addEventListener("click", startSimulation, false);
+}
+
+function startSimulation(){
+	simulationCounter = 0;
+	simulationIntervalID = setInterval(simulate, simulationTime);
 }
 
 function simulate(){
-	for (var n = 0; n < 120; n++)
-		for (var i = 0; i < HTMLboards.length; i++) population[i].update();
+	for (var i = 0; i < HTMLboards.length; i++) population[i].update();
+	simulationCounter++;
+
+	if (simulationCounter > simulationMax) endSimulation();
+}
+
+function endSimulation(){
+	clearInterval(simulationIntervalID);
+
+	// chamar crossover aqui
+
+	startSimulation();
 }
 
 window.addEventListener("load", start, false);
