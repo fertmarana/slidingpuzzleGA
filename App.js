@@ -90,14 +90,12 @@ function Individual(HTMLelem){ //Representes a individual of the population
 	};
 
 	//generate genes crossover
-	/*this.crossover = function(){
-		for(var i = 0; i<frameLimit; i++){ //for every gene
-			this.dna.genes[i].add(best_one.dna.genes[i]); //add with the bestOne's genes
-			this.dna.genes[i].x += random(-0.1, 0.1); //mutation at x
-			this.dna.genes[i].y += random(-0.1, 0.1); //mutation at y
-			this.dna.genes[i].div(2); //dived the sum
+	this.crossover = function(){
+		for(var i = 0; i<120; i++){ //for every gene
+			this.dna.genes[i] += best_one.dna.genes[i]; //add with the bestOne's genes
+			this.dna.genes[i] = this.dna.genes[i] % 4;
 		}
-	};*/
+	};
 }
 
 /*******************************************************/
@@ -293,6 +291,25 @@ function endSimulation(){
 	clearInterval(simulationIntervalID);
 
 	// chamar crossover aqui
+	var localFit;
+	min = 100000;
+	best_one = population[0];
+	//averageFitness = 0;
+
+		//find the best individual
+		for(i=1; i<population.length; i++){
+			if(!best_one.haveFitnessHigherThat(population[i])){
+				best_one = population[i];
+			}
+		}
+		//averageFitness /= pop_size;
+		//crossover with the best individual
+		for(i=0; i<population.length; i++) {
+            if (population[i] !== best_one) population[i].crossover();
+            population[i].reset();
+        }
+
+
 
 	startSimulation();
 }
