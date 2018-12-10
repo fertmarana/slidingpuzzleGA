@@ -1,9 +1,5 @@
 function DNA(){ //class
-	//Generates DNA, genes array(it's the force applied every frame)
-	//0 - up
-	//1 - right
-	//2 - down
-	//3 - left
+
 	upper_bound = 4;
 	lower_bound = 0;
 	this.genes = [];
