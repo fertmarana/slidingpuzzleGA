@@ -16,6 +16,23 @@ function DNA(){ //class
 }
 
 /************************************/
+var finalState = [
+	[1, 2, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
+	[1, 2, -1, -1, -1, -1, -1, 3, -1, -1, -1, 4, -1, -1, -1, -1],
+	[1, 2, 3, 4, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
+	[1, 2, 3, 4, 5, 6, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
+	[1, 2, 3, 4, 5, 6, -1, 7, -1, -1, -1, 8, -1, -1, -1, -1],
+	[1, 2, 3, 4, 5, 6, 7, 8, -1, -1, -1, -1, -1, -1, -1, -1],
+	[1, 2, 3, 4, 5, 6, 7, 8, 9, -1, -1, -1, 13, -1, -1, -1],
+	[1, 2, 3, 4, 5, 6, 7, 8, 9, 14, 10, -1, 13, -1, -1, -1],
+	[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, -1, -1, 13, 14, -1, -1],
+	[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 0],
+];
+
+//             0  1  2  3  4  5  6  7  8  9
+var frozen = [-1, 0, 0, 2, 3, 3, 5, 6, 6, 8];
+
+var progression = 0;
 
 function Individual(HTMLelem){ //Representes a individual of the population
 	this.HTMLelem = HTMLelem;
@@ -38,17 +55,15 @@ function Individual(HTMLelem){ //Representes a individual of the population
 	};
 
 	this.mdistance = function(){
-		var count = 1;
 		var distance = 0;
 		var diference;
 		for (var i = 0; i < boardSize; i++){
 			for (var j = 0; j < boardSize; j++){
-		    	diference = this.puzzleInstance.board[i * boardSize + j] - count;
-
-		    	if (diference < 0) diference *= (-1);
-
-		    	distance += diference;
-		      	count++;
+				if (finalState[progression][i * boardSize + j] != -1){
+					diference = this.puzzleInstance.board[i * boardSize + j] - finalState[progression][i * boardSize + j];
+					console.log("dif " + i + " " + j + " = " + diference);
+					distance += Math.abs(diference);
+				}
 			}
 		}
 
@@ -164,7 +179,8 @@ var PuzzleInstance = function(HTMLelem){
 	this.moveTile = function(movement){
 		switch (movement) {
 			case 0: // UP
-				if (this.emptyX >= boardSize - 1) return false;
+				if (this.emptyX >= boardSize - 1) return true;
+				if (frozen[progression] != -1 && this.board[(this.emptyX + 1) * boardSize + this.emptyY] == finalState[frozen[progression]][(this.emptyX + 1) * boardSize + this.emptyY]) return true;
 
 				this.board[this.emptyX * boardSize + this.emptyY] = this.board[(this.emptyX + 1) * boardSize + this.emptyY];
 				this.board[(this.emptyX + 1) * boardSize + this.emptyY] = 0;
@@ -172,7 +188,8 @@ var PuzzleInstance = function(HTMLelem){
 			break;
 
 			case 1: // LEFT
-				if (this.emptyY >= boardSize - 1) return false;
+				if (this.emptyY >= boardSize - 1) return true;
+				if (frozen[progression] != -1 && this.board[this.emptyX * boardSize + (this.emptyY + 1)] == finalState[frozen[progression]][this.emptyX * boardSize + (this.emptyY + 1)]) return true;
 
 				this.board[this.emptyX * boardSize + this.emptyY] = this.board[this.emptyX * boardSize + (this.emptyY + 1)];
 				this.board[this.emptyX * boardSize + (this.emptyY + 1)] = 0;
@@ -180,7 +197,8 @@ var PuzzleInstance = function(HTMLelem){
 			break;
 
 			case 2: // DOWN
-				if (this.emptyX <= 0) return false;
+				if (this.emptyX <= 0) return true;
+				if (frozen[progression] != -1 && this.board[(this.emptyX - 1) * boardSize + this.emptyY] == finalState[frozen[progression]][(this.emptyX - 1) * boardSize + this.emptyY]) return true;
 
 				this.board[this.emptyX * boardSize + this.emptyY] = this.board[(this.emptyX - 1) * boardSize + this.emptyY];
 				this.board[(this.emptyX - 1) * boardSize + this.emptyY] = 0;
@@ -188,7 +206,8 @@ var PuzzleInstance = function(HTMLelem){
 			break;
 
 			case 3: // RIGHT
-				if (this.emptyY <= 0) return false;
+				if (this.emptyY <= 0) return true;
+				if (frozen[progression] != -1 && this.board[this.emptyX * boardSize + (this.emptyY - 1)] == finalState[frozen[progression]][this.emptyX * boardSize + (this.emptyY - 1)]) return true;
 
 				this.board[this.emptyX * boardSize + this.emptyY] = this.board[this.emptyX * boardSize + (this.emptyY - 1)];
 				this.board[this.emptyX * boardSize + (this.emptyY - 1)] = 0;
@@ -218,7 +237,7 @@ var population;
 
 var simulationIntervalID;
 var simulationCounter;
-var simulationTime = 10;
+var simulationTime = 3;
 
 var currentGeneration;
 var maxGeneration = 5;
@@ -331,19 +350,34 @@ function endSimulation(){
 				best_one = population[i];
 			}
 		}
-		//averageFitness /= pop_size;
-		//crossover with the best individual
-		for(i = 0; i < population.length; i++) {
-			console.log("crossover to ind " + i);
-            if (population[i] !== best_one){
-            	population[i].resetDNA();
-				population[i].crossover();
-            } 
-            population[i].mutation();
-            population[i].mutation();
-            population[i].mutation();
-            population[i].reset();
-        }
+
+		if (best_one.completed){
+			// progression increased
+			progression++;
+
+			if (progression >= finalState.length) return;
+
+			initialBoard = best_one.puzzleInstance.board.slice();
+			initialEmptyX = best_one.puzzleInstance.emptyX;
+			initialEmptyY = best_one.puzzleInstance.emptyY;
+
+			for(i = 0; i < population.length; i++) {
+	            if (population[i] !== best_one){
+	            	population[i].resetDNA();
+	            } 
+	            population[i].reset();
+        	}
+		} else {
+			for (i = 0; i < population.length; i++) {
+				console.log("crossover to ind " + i);
+	            if (population[i] !== best_one){
+	            	population[i].resetDNA();
+					population[i].crossover();
+	            } 
+	            population[i].mutation();
+	            population[i].reset();
+	        }
+		}		
 
         best_one.puzzleInstance.class = "best";
         bestFitObj.innerHTML = "Best of Past Gen: MDist = " + best_one.mdist + ", Moves = " + best_one.puzzleInstance.moves;
